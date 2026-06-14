@@ -1,38 +1,50 @@
 package com.example.budgetmanager1;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
+    // Vistas de la interfaz de usuario con nombres descriptivos
     private TextView tvBalance, tvIngresosTotal, tvGastosTotal;
     private Button btnAgregarIngreso, btnAgregarGasto, btnLimpiarHistorial;
     private ListView lvHistorial;
 
-    private com.example.budgetmanager1.AppDatabase db;
+    // Instancia de la base de datos local
+    private AppDatabase baseDatos;
 
-    // Variables globales simuladas
-    public static double ingresos = 0.0;
-    public static double gastos = 0.0;
+    // Variables de control de estado del presupuesto
+    private double totalIngresos = 0.0;
+    private double totalGastos = 0.0;
 
-    // Lista global donde se guardarán todos los movimientos
-    public static ArrayList<Transaccion> listaTransacciones = new ArrayList<>();
-    private ArrayAdapter<Transaccion> adapter;
+    // Lista y adaptador para el historial de movimientos
+    private ArrayList<Transaccion> listaTransacciones = new ArrayList<>();
+    private ArrayAdapter<Transaccion> adaptadorHistorial;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Inicializar base de datos de Room
-        db = com.example.budgetmanager1.AppDatabase.getInstance(this);
+        // Inicializar la base de datos de Room
+        baseDatos = AppDatabase.getInstance(this);
+
+        // Vincular componentes de la interfaz
         tvBalance = findViewById(R.id.tvBalance);
         tvIngresosTotal = findViewById(R.id.tvIngresosTotal);
         tvGastosTotal = findViewById(R.id.tvGastosTotal);
@@ -42,130 +54,116 @@ public class MainActivity extends AppCompatActivity {
         btnLimpiarHistorial = findViewById(R.id.btnLimpiarHistorial);
         Button btnCambiarContrasena = findViewById(R.id.btnCambiarContrasena);
 
-        btnCambiarContrasena.setOnClickListener(v -> {
-            // Crear un campo de texto dinámico para la ventana flotante
+        // Acción para cambiar la contraseña de acceso de la app
+        btnCambiarContrasena.setOnClickListener(vista -> {
             final EditText etNuevaClave = new EditText(this);
             etNuevaClave.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
             etNuevaClave.setHint("Escribe la nueva contraseña");
 
-            // Contenedor para darle margen estético al EditText dentro del diálogo
-            android.widget.FrameLayout container = new android.widget.FrameLayout(this);
-            android.widget.FrameLayout.LayoutParams params = new android.widget.FrameLayout.LayoutParams(
-                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+            // Contenedor para dar margen estético al EditText dentro del diálogo
+            FrameLayout contenedorDialogo = new FrameLayout(this);
+            FrameLayout.LayoutParams parametrosDiseño = new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
             );
-            params.leftMargin = 50; // Margen izquierdo
-            params.rightMargin = 50; // Margen derecho
-            etNuevaClave.setLayoutParams(params);
-            container.addView(etNuevaClave);
+            parametrosDiseño.leftMargin = 50;
+            parametrosDiseño.rightMargin = 50;
+            etNuevaClave.setLayoutParams(parametrosDiseño);
+            contenedorDialogo.addView(etNuevaClave);
 
-            // Crear el cuadro de diálogo (AlertDialog)
-            new androidx.appcompat.app.AlertDialog.Builder(this)
+            // Crear y mostrar el cuadro de diálogo
+            new AlertDialog.Builder(this)
                     .setTitle("Cambiar Contraseña de Acceso")
                     .setMessage("Introduce tu nueva clave de seguridad:")
-                    .setView(container)
-                    .setPositiveButton("Guardar", (dialog, which) -> {
+                    .setView(contenedorDialogo)
+                    .setPositiveButton("Guardar", (dialogo, botonId) -> {
                         String nuevaContrasena = etNuevaClave.getText().toString().trim();
 
                         if (!nuevaContrasena.isEmpty()) {
-                            // Acceder al mismo archivo de preferencias que usa el LoginActivity
-                            android.content.SharedPreferences preferences = getSharedPreferences("AppLockPrefs", android.content.Context.MODE_PRIVATE);
-
-                            // Guardar la nueva contraseña encima de la anterior
-                            preferences.edit().putString("password", nuevaContrasena).apply();
-
-                            android.widget.Toast.makeText(this, "Contraseña actualizada con éxito", android.widget.Toast.LENGTH_SHORT).show();
+                            SharedPreferences preferencias = getSharedPreferences("AppLockPrefs", Context.MODE_PRIVATE);
+                            preferencias.edit().putString("password", nuevaContrasena).apply();
+                            Toast.makeText(this, "Contraseña actualizada con éxito", Toast.LENGTH_SHORT).show();
                         } else {
-                            android.widget.Toast.makeText(this, "Operación cancelada: No puedes dejar el campo vacío", android.widget.Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, "Operación cancelada: No puedes dejar el campo vacío", Toast.LENGTH_SHORT).show();
                         }
                     })
-                    .setNegativeButton("Cancelar", (dialog, which) -> dialog.dismiss())
+                    .setNegativeButton("Cancelar", (dialogo, botonId) -> dialogo.dismiss())
                     .show();
         });
 
-        btnLimpiarHistorial.setOnClickListener(v -> {
-            db.transaccionDao().borrarTodo();
+        // Acción para vaciar por completo los datos guardados
+        btnLimpiarHistorial.setOnClickListener(vista -> {
+            baseDatos.transaccionDao().borrarTodo();
             listaTransacciones.clear();
-            adapter.notifyDataSetChanged();
-            recalcularTotales();
-            android.widget.Toast.makeText(this, "Historial eliminado por completo", android.widget.Toast.LENGTH_SHORT).show();
+            adaptadorHistorial.notifyDataSetChanged();
+            actualizarInterfazPresupuesto();
+            Toast.makeText(this, "Historial eliminado por completo", Toast.LENGTH_SHORT).show();
         });
 
-        // Adaptador optimizado que fuerza el color del texto a negro de forma permanente
-        adapter = new ArrayAdapter<Transaccion>(this, android.R.layout.simple_list_item_1, listaTransacciones) {
+        // Adaptador optimizado que fuerza el color del texto a negro
+        adaptadorHistorial = new ArrayAdapter<Transaccion>(this, android.R.layout.simple_list_item_1, listaTransacciones) {
             @Override
-            public android.view.View getView(int position, android.view.View convertView, android.view.ViewGroup parent) {
-                android.view.View vistaCelda = super.getView(position, convertView, parent);
+            public View getView(int posicion, View vistaConvertida, ViewGroup padre) {
+                View vistaCelda = super.getView(posicion, vistaConvertida, padre);
 
-                // Buscamos el elemento de texto interno nativo y le aplicamos color negro
                 TextView textoFila = vistaCelda.findViewById(android.R.id.text1);
                 if (textoFila != null) {
-                    textoFila.setTextColor(android.graphics.Color.parseColor("#1E293B")); // Negro carbón moderno
-                    textoFila.setTextSize(15f); // Tamaño estilizado
+                    textoFila.setTextColor(Color.parseColor("#1E293B")); // Negro carbón moderno
+                    textoFila.setTextSize(15f);
                 }
 
                 return vistaCelda;
             }
         };
-        lvHistorial.setAdapter(adapter);
+        lvHistorial.setAdapter(adaptadorHistorial);
 
-        btnAgregarIngreso.setOnClickListener(v -> {
+        // Navegación hacia los diferentes flujos de la aplicación
+        btnAgregarIngreso.setOnClickListener(vista -> {
             Intent intent = new Intent(MainActivity.this, AgregarIngresoActivity.class);
             startActivity(intent);
         });
 
-        btnAgregarGasto.setOnClickListener(v -> {
+        btnAgregarGasto.setOnClickListener(vista -> {
             Intent intent = new Intent(MainActivity.this, AgregarGastoActivity.class);
             startActivity(intent);
         });
 
-        findViewById(R.id.btnVerReportes).setOnClickListener(v -> {
+        findViewById(R.id.btnVerReportes).setOnClickListener(vista -> {
             Intent intent = new Intent(this, ReportesActivity.class);
             startActivity(intent);
         });
-
-        actualizarResumen();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        // 1. Limpiar la lista actual en memoria
+        // Sincronizar datos de la base de datos local al volver a la pantalla
         listaTransacciones.clear();
-
-        // 2. Traer los datos guardados en la Base de Datos Local
-        listaTransacciones.addAll(db.transaccionDao().obtenerTodas());
-
-        // 3. Recalcular los totales basados en la BD
-        recalcularTotales();
-
-        // 4. Refrescar la pantalla
-        adapter.notifyDataSetChanged();
+        listaTransacciones.addAll(baseDatos.transaccionDao().obtenerTodas());
+        actualizarInterfazPresupuesto();
+        adaptadorHistorial.notifyDataSetChanged();
     }
 
-    private void recalcularTotales() {
-        ingresos = 0.0;
-        gastos = 0.0;
+    /**
+     * Calcula los ingresos/gastos basados en la lista actual y actualiza los TextViews.
+     * Reemplaza las funciones duplicadas anteriores para simplificar el código.
+     */
+    private void actualizarInterfazPresupuesto() {
+        totalIngresos = 0.0;
+        totalGastos = 0.0;
 
-        // Recorremos la base de datos para sumar los montos correspondientes
-        for (Transaccion t : listaTransacciones) {
-            if (t.getTipo().equals("INGRESO")) {
-                ingresos += t.getMonto();
-            } else if (t.getTipo().equals("GASTO")) {
-                gastos += t.getMonto();
+        for (Transaccion transaccionActual : listaTransacciones) {
+            if (transaccionActual.getTipo().equals("INGRESO")) {
+                totalIngresos += transaccionActual.getMonto();
+            } else if (transaccionActual.getTipo().equals("GASTO")) {
+                totalGastos += transaccionActual.getMonto();
             }
         }
 
-        double balance = ingresos - gastos;
-        tvIngresosTotal.setText(String.format("$%.2f", ingresos));
-        tvGastosTotal.setText(String.format("$%.2f", gastos));
-        tvBalance.setText(String.format("$%.2f", balance));
-    }
+        double balanceNeto = totalIngresos - totalGastos;
 
-    private void actualizarResumen() {
-        double balance = ingresos - gastos;
-        tvIngresosTotal.setText(String.format("$%.2f", ingresos));
-        tvGastosTotal.setText(String.format("$%.2f", gastos));
-        tvBalance.setText(String.format("$%.2f", balance));
+        tvIngresosTotal.setText(String.format("$%.2f", totalIngresos));
+        tvGastosTotal.setText(String.format("$%.2f", totalGastos));
+        tvBalance.setText(String.format("$%.2f", balanceNeto));
     }
 }
