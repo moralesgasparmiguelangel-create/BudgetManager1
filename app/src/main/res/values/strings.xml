@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">BudgetManager1</string>
+
+    <string-array name="categorias_rubros">
+        <item>Alimentación</item>
+        <item>Vivienda / Renta</item>
+        <item>Ocio / Entretenimiento</item>
+        <item>Transporte</item>
+        <item>Salud</item>
+        <item>Educación</item>
+        <item>Sueldo</item>
+        <item>Otros</item>
+    </string-array>
+</resources>

@@ -1,0 +1,4 @@
+<resources xmlns:tools="http://schemas.gettools.org/referenced">
+    <style name="Theme.BudgetManager1" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    </style>
+</resources>
