@@ -1,14 +1,16 @@
-package com.example.budgetmanager1;
+package database;
 
 import android.content.Context;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
+import data.Transaccion;
+
 @Database(entities = {Transaccion.class}, version = 1, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
-    public abstract com.example.budgetmanager1.TransaccionDao transaccionDao();
+    public abstract TransaccionDao transaccionDao();
     private static AppDatabase instancia = null;
 
     // Patrón Singleton para evitar abrir varias instancias de la BD a la vez

@@ -1,4 +1,4 @@
-package com.example.budgetmanager1;
+package ui;
 
 import android.content.Context;
 import android.content.Intent;
@@ -16,7 +16,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.budgetmanager1.R;
+
 import java.util.ArrayList;
+
+import data.Transaccion;
+import database.AppDatabase;
 
 public class MainActivity extends AppCompatActivity {
 

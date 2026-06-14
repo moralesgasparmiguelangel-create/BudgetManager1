@@ -1,4 +1,4 @@
-package com.example.budgetmanager1;
+package ui;
 
 import android.content.Context;
 import android.content.Intent;
@@ -9,6 +9,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.budgetmanager1.R;
 
 public class LoginActivity extends AppCompatActivity {
 
