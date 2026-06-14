@@ -1,4 +1,4 @@
-package com.example.budgetmanager1;
+package ui;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -9,6 +9,8 @@ import android.os.Environment;
 import android.widget.Button;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.budgetmanager1.R;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.*;
@@ -20,6 +22,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import data.Transaccion;
+import database.AppDatabase;
 
 public class ReportesActivity extends AppCompatActivity {
 

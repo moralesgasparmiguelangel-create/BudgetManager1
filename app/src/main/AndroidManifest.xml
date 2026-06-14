@@ -14,7 +14,7 @@
         android:layoutDirection="locale">
 
         <activity
-            android:name=".LoginActivity"
+            android:name="ui.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -23,19 +23,19 @@
         </activity>
 
         <activity
-            android:name=".MainActivity"
+            android:name="ui.MainActivity"
             android:exported="false" />
 
         <activity
-            android:name=".AgregarGastoActivity"
+            android:name="ui.AgregarGastoActivity"
             android:exported="false" />
 
         <activity
-            android:name=".AgregarIngresoActivity"
+            android:name="ui.AgregarIngresoActivity"
             android:exported="false" />
 
         <activity
-            android:name=".ReportesActivity"
+            android:name="ui.ReportesActivity"
             android:exported="false" />
     </application>
 

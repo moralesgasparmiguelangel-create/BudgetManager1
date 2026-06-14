@@ -1,4 +1,4 @@
-package com.example.budgetmanager1;
+package ui;
 
 import android.os.Bundle;
 import android.widget.Button;
@@ -6,9 +6,15 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.budgetmanager1.R;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+
+import data.Transaccion;
+import database.AppDatabase;
 
 public class AgregarIngresoActivity extends AppCompatActivity {
 
@@ -39,7 +45,7 @@ public class AgregarIngresoActivity extends AppCompatActivity {
                 Transaccion nuevaTransaccion = new Transaccion(concepto, monto, "INGRESO", fechaHoraActual, categoriaSeleccionada);
 
                 // GUARDAR EN BASE DE DATOS LOCAL
-                com.example.budgetmanager1.AppDatabase.getInstance(this).transaccionDao().insertar(nuevaTransaccion);
+                AppDatabase.getInstance(this).transaccionDao().insertar(nuevaTransaccion);
 
                 Toast.makeText(this, "Ingreso guardado en BD", Toast.LENGTH_SHORT).show();
                 finish();
